@@ -30,8 +30,8 @@ def forbid(path: str, needle: str, label: str) -> None:
         print(f"[ok] {label}")
 
 
-require("launcher/src/backend.rs", 'LAUNCHER_REPO: &str = "LeahRCS/Oxidum"', "Oxidum update channel")
-require("launcher/src/backend.rs", "oxidum-linux-x86_64.AppImage", "Oxidum AppImage asset")
+require("launcher/src/backend.rs", 'LAUNCHER_REPO: &str = "LeahRCS/Oxidium"', "Oxidum update channel")
+require("launcher/src/backend.rs", "oxidium-linux-x86_64.AppImage", "Oxidum AppImage asset")
 require("launcher/src/lib.rs", "pub mod gpu;", "GPU module exported")
 require("crates/horizon-client-render/src/gfx.rs", "HORIZON_GPU", "Rust renderer GPU selector")
 require(
@@ -43,7 +43,7 @@ require("launcher/src/titlebar.rs", 'title: Some("Oxidum".into())', "window titl
 require("packaging/linux/horizon-launcher.desktop", "Icon=oxidum", "desktop icon branding")
 require("launcher/src/main.rs", '"OXIDUM".chars().enumerate()', "opening wordmark")
 require("launcher/src/frame.rs", '"Oxidum"', "Glass sidebar branding")
-require("launcher/src/frame.rs", "https://github.com/LeahRCS/Oxidum", "Glass sidebar repository link")
+require("launcher/src/frame.rs", "https://github.com/LeahRCS/Oxidium", "Glass sidebar repository link")
 forbid("launcher/src/frame.rs", '"Horizon-Free"', "old sidebar brand removed")
 require("launcher/src/glass_settings.rs", '"Oxidum"', "Glass settings branding")
 forbid(
