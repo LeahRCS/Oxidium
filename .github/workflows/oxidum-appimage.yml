@@ -93,7 +93,8 @@ jobs:
           version=$(target/release/horizon-launcher --version | awk '{print $2}')
           rm -rf out && mkdir out
           ../packaging/linux/appimage.sh target/release/horizon-launcher "$version" out
-          sha256sum out/oxidium-linux-x86_64.AppImage
+          tar -C target/release -czf out/oxidium-launcher-linux-x86_64.tar.gz horizon-launcher
+          sha256sum out/oxidium-linux-x86_64.AppImage out/oxidium-launcher-linux-x86_64.tar.gz
       - name: Verify packaged Oxidium identity
         run: |
           set -euo pipefail
@@ -106,11 +107,20 @@ jobs:
           bin="$RUNNER_TEMP/oxidium-appimage-root/squashfs-root/usr/bin/horizon-launcher"
           strings_file="$RUNNER_TEMP/oxidium-appimage.strings"
           strings "$bin" > "$strings_file"
+          updater="$RUNNER_TEMP/oxidium-appimage-root/squashfs-root/usr/lib/oxidium/appimage-updater.sh"
+          test -x "$updater" || {
+            echo "::error::Packaged AppImage is missing the Oxidium update bridge"
+            exit 1
+          }
+          grep -Fq 'LeahRCS/Oxidium' "$updater" || {
+            echo "::error::Update bridge is not targeting the Oxidium release channel"
+            exit 1
+          }
           grep -Fq 'OXIDUM' "$strings_file" || {
             echo "::error::Packaged launcher is missing the OXIDUM wordmark"
             exit 1
           }
-          grep -Fq 'https://github.com/LeahRCS/Oxidum' "$strings_file" || {
+          grep -Fq 'https://github.com/LeahRCS/Oxidium' "$strings_file" || {
             echo "::error::Packaged launcher is missing the Oxidium repository link"
             exit 1
           }
