@@ -14,17 +14,17 @@ def replace(path, old, new):
 replace(
     "launcher/src/backend.rs",
     'pub const LAUNCHER_REPO: &str = "0CYBER/horizon-free";',
-    'pub const LAUNCHER_REPO: &str = "LeahRCS/Oxidum";',
+    'pub const LAUNCHER_REPO: &str = "LeahRCS/Oxidium";',
 )
 replace(
     "launcher/src/backend.rs",
     'pub const README_URL: &str = "https://github.com/horizon-rust/horizon/blob/main/launcher/README.md";',
-    'pub const README_URL: &str = "https://github.com/LeahRCS/Oxidum";',
+    'pub const README_URL: &str = "https://github.com/LeahRCS/Oxidium";',
 )
 replace(
     "launcher/src/backend.rs",
     'Some("horizon-launcher-linux-x86_64.AppImage")',
-    'Some("oxidum-linux-x86_64.AppImage")',
+    'Some("oxidium-linux-x86_64.AppImage")',
 )
 
 # Visible application brand.
@@ -103,7 +103,7 @@ if old_mark not in text:
 text = text.replace(old_mark, new_mark)
 for old, new in [
     ('"HORIZON".chars().enumerate()', '"OXIDUM".chars().enumerate()'),
-    ('"https://github.com/0CYBER/horizon-free".to_string()', '"https://github.com/LeahRCS/Oxidum".to_string()'),
+    ('"https://github.com/0CYBER/horizon-free".to_string()', '"https://github.com/LeahRCS/Oxidium".to_string()'),
     ('"horizon-free",\n            "Horizon-Free",', '"oxidum",\n            "Oxidum",'),
     ('.child("Horizon"),', '.child("Oxidum"),'),
     ('tr("Horizon crashed")', 'tr("Oxidum crashed")'),
@@ -143,6 +143,8 @@ for glass_path in [
     "launcher/src/glass_versions.rs",
 ]:
     p = Path(glass_path)
+    if not p.is_file():
+        continue
     text = p.read_text()
     text = text.replace(
         "Horizon is built in the open. Sponsors fund the next release.",
@@ -159,7 +161,7 @@ p = Path("launcher/src/frame.rs")
 text = p.read_text()
 text = text.replace(
     '"horizon-free",\n                "Horizon-Free",\n                "globe-02",\n                "https://github.com/0CYBER/horizon-free".to_string(),',
-    '"oxidum",\n                "Oxidum",\n                "globe-02",\n                "https://github.com/LeahRCS/Oxidum".to_string(),',
+    '"oxidum",\n                "Oxidum",\n                "globe-02",\n                "https://github.com/LeahRCS/Oxidium".to_string(),',
 )
 p.write_text(text)
 
@@ -750,7 +752,7 @@ p = Path("packaging/linux/appimage.sh")
 text = p.read_text()
 text = text.replace(
     "name=horizon-launcher-linux-x86_64.AppImage",
-    "name=oxidum-linux-x86_64.AppImage",
+    "name=oxidium-linux-x86_64.AppImage",
 )
 text = text.replace(
     'cp "$here/../icons/hicolor/512x512/apps/horizon.png" "$appdir/horizon.png"\nln -s horizon.png "$appdir/.DirIcon"',
@@ -902,7 +904,7 @@ fn the_mcp_server_reaches_the_offline_launch_path_without_an_owner() {
 p = Path("launcher/src/installer.rs")
 text = p.read_text().replace("Horizon Launcher", "Oxidum Launcher")
 text = text.replace('const PUBLISHER: &str = "Horizon";', 'const PUBLISHER: &str = "Oxidum";')
-text = text.replace('const ABOUT_URL: &str = "https://playhorizon.dev";', 'const ABOUT_URL: &str = "https://github.com/LeahRCS/Oxidum";')
+text = text.replace('const ABOUT_URL: &str = "https://playhorizon.dev";', 'const ABOUT_URL: &str = "https://github.com/LeahRCS/Oxidium";')
 p.write_text(text)
 
 p = Path("launcher/src/cli.rs")
