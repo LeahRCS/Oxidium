@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="packaging/icons/hicolor/scalable/apps/Oxidum.svg" alt="Oxidum logo" width="128">
+  <img src="packaging/icons/hicolor/scalable/apps/oxidum.svg" alt="Oxidum logo" width="128">
 </p>
 
 <h1 align="center">Oxidium</h1>
