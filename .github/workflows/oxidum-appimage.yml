@@ -1,4 +1,4 @@
-name: Oxidum AppImage channel
+name: Oxidium AppImage channel
 
 on:
   push:
@@ -25,7 +25,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: oxidum-appimage-${{ github.ref }}
+  group: oxidium-appimage-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -46,7 +46,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: launcher
-          shared-key: oxidum-appimage
+          shared-key: oxidium-appimage
       - name: Linux build dependencies
         run: |
           sudo apt-get update
@@ -61,8 +61,8 @@ jobs:
             echo "::error file=tools/fork/upstream.lock::Expected one 40-character Git SHA, got '$upstream_sha'"
             exit 1
           }
-          echo "Validating Oxidum overlay against Horizon-Free $upstream_sha"
-          temp="$RUNNER_TEMP/oxidum-overlay-test"
+          echo "Validating Oxidium overlay against Horizon-Free $upstream_sha"
+          temp="$RUNNER_TEMP/oxidium-overlay-test"
           rm -rf "$temp"
           git init -q "$temp"
           git -C "$temp" remote add origin https://github.com/0CYBER/horizon-free.git
@@ -81,7 +81,7 @@ jobs:
         working-directory: .
         run: |
           set -euo pipefail
-          temp="$RUNNER_TEMP/oxidum-overlay-test"
+          temp="$RUNNER_TEMP/oxidium-overlay-test"
           cargo fmt --manifest-path "$temp/launcher/Cargo.toml" --all -- --check
           cargo check --locked --manifest-path "$temp/launcher/Cargo.toml"
       - name: Test launcher
@@ -93,25 +93,25 @@ jobs:
           version=$(target/release/horizon-launcher --version | awk '{print $2}')
           rm -rf out && mkdir out
           ../packaging/linux/appimage.sh target/release/horizon-launcher "$version" out
-          sha256sum out/oxidum-linux-x86_64.AppImage
-      - name: Verify packaged Oxidum identity
+          sha256sum out/oxidium-linux-x86_64.AppImage
+      - name: Verify packaged Oxidium identity
         run: |
           set -euo pipefail
-          rm -rf "$RUNNER_TEMP/oxidum-appimage-root"
-          mkdir -p "$RUNNER_TEMP/oxidum-appimage-root"
+          rm -rf "$RUNNER_TEMP/oxidium-appimage-root"
+          mkdir -p "$RUNNER_TEMP/oxidium-appimage-root"
           (
-            cd "$RUNNER_TEMP/oxidum-appimage-root"
-            "$GITHUB_WORKSPACE/launcher/out/oxidum-linux-x86_64.AppImage" --appimage-extract >/dev/null
+            cd "$RUNNER_TEMP/oxidium-appimage-root"
+            "$GITHUB_WORKSPACE/launcher/out/oxidium-linux-x86_64.AppImage" --appimage-extract >/dev/null
           )
-          bin="$RUNNER_TEMP/oxidum-appimage-root/squashfs-root/usr/bin/horizon-launcher"
-          strings_file="$RUNNER_TEMP/oxidum-appimage.strings"
+          bin="$RUNNER_TEMP/oxidium-appimage-root/squashfs-root/usr/bin/horizon-launcher"
+          strings_file="$RUNNER_TEMP/oxidium-appimage.strings"
           strings "$bin" > "$strings_file"
           grep -Fq 'OXIDUM' "$strings_file" || {
             echo "::error::Packaged launcher is missing the OXIDUM wordmark"
             exit 1
           }
           grep -Fq 'https://github.com/LeahRCS/Oxidum' "$strings_file" || {
-            echo "::error::Packaged launcher is missing the Oxidum repository link"
+            echo "::error::Packaged launcher is missing the Oxidium repository link"
             exit 1
           }
           if grep -Fq 'https://github.com/0CYBER/horizon-free' "$strings_file"; then
@@ -120,8 +120,10 @@ jobs:
           fi
       - uses: actions/upload-artifact@v4
         with:
-          name: oxidum-appimage
-          path: launcher/out/oxidum-linux-x86_64.AppImage
+          name: oxidium-appimage
+          path: |
+            launcher/out/oxidium-linux-x86_64.AppImage
+            launcher/out/oxidium-launcher-linux-x86_64.tar.gz
           retention-days: 7
 
   mirror-release:
@@ -185,7 +187,7 @@ jobs:
         if: steps.upstream.outputs.exists != 'true'
         with:
           workspaces: launcher
-          shared-key: oxidum-release
+          shared-key: oxidium-release
 
       - name: Linux build dependencies
         if: steps.upstream.outputs.exists != 'true'
@@ -212,7 +214,11 @@ jobs:
         run: |
           rm -rf out && mkdir out
           ../packaging/linux/appimage.sh target/release/horizon-launcher "$VERSION" out
-          (cd out && sha256sum oxidum-linux-x86_64.AppImage > SHA256SUMS)
+          tar -C target/release -czf out/oxidium-launcher-linux-x86_64.tar.gz horizon-launcher
+          (
+            cd out
+            sha256sum oxidium-linux-x86_64.AppImage oxidium-launcher-linux-x86_64.tar.gz > SHA256SUMS
+          )
 
       - name: Publish fork release
         if: steps.upstream.outputs.exists != 'true'
@@ -221,4 +227,4 @@ jobs:
           TAG: ${{ steps.upstream.outputs.tag }}
           VERSION: ${{ steps.upstream.outputs.version }}
         run: |
-          gh release create "$TAG"             --repo "${{ github.repository }}"             --target main             --title "Oxidum $VERSION"             --notes "Oxidum AppImage build of upstream $TAG, with Oxidum branding, LeahRCS update channel and Linux packaging. Source release: https://github.com/0CYBER/horizon-free/releases/tag/$TAG"             launcher/out/oxidum-linux-x86_64.AppImage             launcher/out/SHA256SUMS
+          gh release create "$TAG"             --repo "${{ github.repository }}"             --target main             --title "Oxidium $VERSION"             --notes "Oxidium build converted from upstream $TAG, with the Oxidium overlay, Linux AppImage packaging and checksum-verified update channel. Source release: https://github.com/0CYBER/horizon-free/releases/tag/$TAG"             launcher/out/oxidium-linux-x86_64.AppImage             launcher/out/oxidium-launcher-linux-x86_64.tar.gz             launcher/out/SHA256SUMS
