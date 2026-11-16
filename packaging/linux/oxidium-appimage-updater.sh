@@ -104,7 +104,7 @@ version_newer() {
 }
 version_newer "$LATEST" "$CURRENT" || exit 0
 
-base="https://github.com/$REPO/releases/download/$TAG"
+base="${OXIDIUM_UPDATE_BASE_URL:-https://github.com/$REPO/releases/download/$TAG}"
 dir="$(dirname "$SELF")"
 cleanup="$dir/.oxidium-update.$$"
 rm -rf "$cleanup" 2>/dev/null || true
