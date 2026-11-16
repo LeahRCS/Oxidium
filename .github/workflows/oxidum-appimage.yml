@@ -171,6 +171,9 @@ jobs:
           cp tools/fork/apply_overlay.py "$RUNNER_TEMP/apply_overlay.py"
           cp tools/fork/verify_overlay.py "$RUNNER_TEMP/verify_overlay.py"
           cp tools/fork/gpu-selection.patch "$RUNNER_TEMP/gpu-selection.patch"
+          cp packaging/linux/appimage.sh "$RUNNER_TEMP/oxidium-appimage.sh"
+          cp packaging/linux/horizon-launcher.desktop "$RUNNER_TEMP/oxidium-launcher.desktop"
+          cp packaging/linux/oxidium-appimage-updater.sh "$RUNNER_TEMP/oxidium-appimage-updater.sh"
           cp packaging/icons/hicolor/scalable/apps/oxidum.svg "$RUNNER_TEMP/oxidum.svg"
           cp packaging/icons/hicolor/256x256/apps/oxidum.png "$RUNNER_TEMP/oxidum.png"
 
@@ -181,6 +184,11 @@ jobs:
         run: |
           git fetch --force --depth=1 https://github.com/0CYBER/horizon-free.git "refs/tags/$TAG"
           git checkout --detach FETCH_HEAD
+          mkdir -p packaging/linux
+          cp "$RUNNER_TEMP/oxidium-appimage.sh" packaging/linux/appimage.sh
+          cp "$RUNNER_TEMP/oxidium-launcher.desktop" packaging/linux/horizon-launcher.desktop
+          cp "$RUNNER_TEMP/oxidium-appimage-updater.sh" packaging/linux/oxidium-appimage-updater.sh
+          chmod +x packaging/linux/appimage.sh packaging/linux/oxidium-appimage-updater.sh
           mkdir -p packaging/icons/hicolor/scalable/apps
           cp "$RUNNER_TEMP/oxidum.svg" packaging/icons/hicolor/scalable/apps/oxidum.svg
           mkdir -p packaging/icons/hicolor/256x256/apps
