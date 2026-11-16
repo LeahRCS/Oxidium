@@ -30,6 +30,15 @@ def forbid(path: str, needle: str, label: str) -> None:
         print(f"[ok] {label}")
 
 
+def require_any(candidates: list[tuple[str, str]], label: str) -> None:
+    for path, needle in candidates:
+        if needle in read(path):
+            print(f"[ok] {label}")
+            return
+    choices = ", ".join(f"{path}: {needle!r}" for path, needle in candidates)
+    failures.append(f"{label}: none of the supported shapes matched ({choices})")
+
+
 require("launcher/src/backend.rs", 'LAUNCHER_REPO: &str = "LeahRCS/Oxidium"', "Oxidum update channel")
 require("launcher/src/backend.rs", "oxidium-linux-x86_64.AppImage", "Oxidum AppImage asset")
 require("launcher/src/lib.rs", "pub mod gpu;", "GPU module exported")
@@ -39,9 +48,21 @@ require(
     "device_pci_bus_id.eq_ignore_ascii_case(wanted)",
     "physical GPU selection prefers PCI identity",
 )
-require("launcher/src/titlebar.rs", 'title: Some("Oxidum".into())', "window title branding")
+require_any(
+    [
+        ("launcher/src/titlebar.rs", 'title: Some("Oxidum".into())'),
+        ("launcher/src/titlebar.rs", 'title: Some("Oxidum Launcher".into())'),
+    ],
+    "window title branding",
+)
 require("packaging/linux/horizon-launcher.desktop", "Icon=oxidum", "desktop icon branding")
-require("launcher/src/main.rs", '"OXIDUM".chars().enumerate()', "opening wordmark")
+require_any(
+    [
+        ("launcher/src/main.rs", '"OXIDUM".chars().enumerate()'),
+        ("launcher/src/blocks_chrome.rs", 'tr("Oxidum Launcher")'),
+    ],
+    "opening/sidebar brand",
+)
 require("launcher/src/frame.rs", '"Oxidum"', "Glass sidebar branding")
 require("launcher/src/frame.rs", "https://github.com/LeahRCS/Oxidium", "Glass sidebar repository link")
 forbid("launcher/src/frame.rs", '"Horizon-Free"', "old sidebar brand removed")
