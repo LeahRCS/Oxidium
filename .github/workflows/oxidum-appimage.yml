@@ -96,8 +96,9 @@ jobs:
           version=$(target/release/horizon-launcher --version | awk '{print $2}')
           rm -rf out && mkdir out
           ../packaging/linux/appimage.sh target/release/horizon-launcher "$version" out
+          cp -p out/oxidium-linux-x86_64.AppImage out/oxidum-linux-x86_64.AppImage
           tar -C target/release -czf out/oxidium-launcher-linux-x86_64.tar.gz horizon-launcher
-          sha256sum out/oxidium-linux-x86_64.AppImage out/oxidium-launcher-linux-x86_64.tar.gz
+          sha256sum out/oxidium-linux-x86_64.AppImage out/oxidum-linux-x86_64.AppImage out/oxidium-launcher-linux-x86_64.tar.gz
       - name: Verify packaged Oxidium identity
         run: |
           set -euo pipefail
@@ -136,6 +137,7 @@ jobs:
           name: oxidium-appimage
           path: |
             launcher/out/oxidium-linux-x86_64.AppImage
+            launcher/out/oxidum-linux-x86_64.AppImage
             launcher/out/oxidium-launcher-linux-x86_64.tar.gz
           retention-days: 7
 
@@ -233,10 +235,11 @@ jobs:
         run: |
           rm -rf out && mkdir out
           ../packaging/linux/appimage.sh target/release/horizon-launcher "$VERSION" out
+          cp -p out/oxidium-linux-x86_64.AppImage out/oxidum-linux-x86_64.AppImage
           tar -C target/release -czf out/oxidium-launcher-linux-x86_64.tar.gz horizon-launcher
           (
             cd out
-            sha256sum oxidium-linux-x86_64.AppImage oxidium-launcher-linux-x86_64.tar.gz > SHA256SUMS
+            sha256sum oxidium-linux-x86_64.AppImage oxidum-linux-x86_64.AppImage oxidium-launcher-linux-x86_64.tar.gz > SHA256SUMS
           )
 
       - name: Publish fork release
@@ -246,4 +249,4 @@ jobs:
           TAG: ${{ steps.upstream.outputs.tag }}
           VERSION: ${{ steps.upstream.outputs.version }}
         run: |
-          gh release create "$TAG"             --repo "${{ github.repository }}"             --target main             --title "Oxidium $VERSION"             --notes "Oxidium build converted from upstream $TAG, with the Oxidium overlay, Linux AppImage packaging and checksum-verified update channel. Source release: https://github.com/0CYBER/horizon-free/releases/tag/$TAG"             launcher/out/oxidium-linux-x86_64.AppImage             launcher/out/oxidium-launcher-linux-x86_64.tar.gz             launcher/out/SHA256SUMS
+          gh release create "$TAG"             --repo "${{ github.repository }}"             --target main             --title "Oxidium $VERSION"             --notes "Oxidium build converted from upstream $TAG, with the Oxidium overlay, Linux AppImage packaging and checksum-verified update channel. Source release: https://github.com/0CYBER/horizon-free/releases/tag/$TAG"             launcher/out/oxidium-linux-x86_64.AppImage             launcher/out/oxidum-linux-x86_64.AppImage             launcher/out/oxidium-launcher-linux-x86_64.tar.gz             launcher/out/SHA256SUMS
