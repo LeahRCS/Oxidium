@@ -32,6 +32,7 @@ for path in [
     "launcher/src/titlebar.rs",
     "launcher/src/home.rs",
     "launcher/src/setup_page.rs",
+    "launcher/src/blocks_chrome.rs",
 ]:
     p = Path(path)
     p.write_text(p.read_text().replace("Horizon", "Oxidum"))
@@ -98,9 +99,15 @@ fn mark(size: f32, _t: &Theme) -> Div {
         .child(bar(7., 7., 3., 1., transition))
         .child(bar(10., 7., 5., 1., patina))
 }"""
-if old_mark not in text:
-    raise SystemExit("Oxidum overlay: launcher mark changed upstream")
-text = text.replace(old_mark, new_mark)
+if old_mark in text:
+    text = text.replace(old_mark, new_mark)
+else:
+    # Newer launchers moved the shared mark helper from main.rs to widgets.rs.
+    widgets = Path("launcher/src/widgets.rs")
+    widgets_text = widgets.read_text() if widgets.is_file() else ""
+    if old_mark not in widgets_text:
+        raise SystemExit("Oxidum overlay: launcher mark changed upstream")
+    widgets.write_text(widgets_text.replace(old_mark, new_mark))
 for old, new in [
     ('"HORIZON".chars().enumerate()', '"OXIDUM".chars().enumerate()'),
     ('"https://github.com/0CYBER/horizon-free".to_string()', '"https://github.com/LeahRCS/Oxidium".to_string()'),
@@ -254,8 +261,12 @@ p.write_text(text)
 p = Path("launcher/src/glass_settings.rs")
 text = p.read_text()
 if "fn launcher_gpu_row" not in text:
-    anchor = "    /// The Game card's Native mods row."
-    if anchor not in text:
+    anchors = [
+        "    /// The Game card's Native mods row.",
+        "    /// The Game card's switch for registry mods' automatic updates",
+    ]
+    anchor = next((candidate for candidate in anchors if candidate in text), None)
+    if anchor is None:
         raise SystemExit("Oxidum overlay: glass Settings GPU anchor changed upstream")
     rows = r'''    /// Linux: the physical GPU the launcher window itself uses on its next start.
     pub(super) fn launcher_gpu_row(&mut self, cx: &mut Context<Self>) -> Option<Div> {
@@ -393,8 +404,9 @@ if ".children(self.launcher_gpu_row(cx))" not in text:
     text = text.replace(anchor, anchor + "            .children(self.launcher_gpu_row(cx))\n", 1)
 
 if ".children(self.rust_game_gpu_row(cx))" not in text:
-    anchor = "        let game = card()\n"
-    if anchor not in text:
+    anchors = ["        let game = card()\n", "        let game = section(4)\n"]
+    anchor = next((candidate for candidate in anchors if candidate in text), None)
+    if anchor is None:
         raise SystemExit("Oxidum overlay: game Settings card changed upstream")
     text = text.replace(anchor, anchor + "            .children(self.rust_game_gpu_row(cx))\n", 1)
 p.write_text(text)
@@ -402,8 +414,12 @@ p.write_text(text)
 p = Path("launcher/src/launch_page.rs")
 text = p.read_text()
 if "fn pick_instance_gpu" not in text:
-    anchor = "    /// The instance the memory row sets:"
-    if anchor not in text:
+    anchors = [
+        "    /// The instance the memory row sets:",
+        "    /// The Java instance being edited, or the selected Java instance on Home.",
+    ]
+    anchor = next((candidate for candidate in anchors if candidate in text), None)
+    if anchor is None:
         raise SystemExit("Oxidum overlay: instance GPU save anchor changed upstream")
     helper = r'''    /// Picks a physical GPU for a Rust instance. None means inherit the Settings default.
     /// Choosing through the new list also retires the old boolean dedicated-GPU switch for it.
