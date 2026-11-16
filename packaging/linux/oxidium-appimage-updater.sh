@@ -36,9 +36,9 @@ cleanup=""
 unlock=""
 finish() {
   [ -z "$cleanup" ] || rm -rf "$cleanup" 2>/dev/null || true
-  [ -z "$unlock" ] || rmdir "$unlock" 2>/dev/null || true
+  [ -z "$unlock" ] || rm -rf "$unlock" 2>/dev/null || true
 }
-trap finish EXIT HUP INT TERM
+trap finish 0 HUP INT TERM
 
 # The launcher itself handles these without needing a network check.
 case "${1:-}" in
@@ -51,17 +51,28 @@ esac
 [ -f "$SELF" ] || exit 0
 [ -w "$SELF" ] || { log "AppImage is read-only; update skipped: $SELF"; exit 0; }
 
-for tool in curl sha256sum sed awk chmod cp mv mkdir rm; do
+for tool in curl sha256sum sed awk chmod cp mv mkdir rm dirname head cat; do
   command -v "$tool" >/dev/null 2>&1 || { log "$tool is unavailable; update skipped"; exit 0; }
 done
 
 # A directory lock works without flock and disappears after a normal exit.
 unlock="${SELF}.update.lock"
 if ! mkdir "$unlock" 2>/dev/null; then
-  log "another updater owns $unlock; update skipped"
-  unlock=""
-  exit 0
+  owner="$(cat "$unlock/pid" 2>/dev/null || true)"
+  if [ -n "$owner" ] && ! kill -0 "$owner" 2>/dev/null; then
+    rm -rf "$unlock" 2>/dev/null || true
+    mkdir "$unlock" 2>/dev/null || {
+      log "stale update lock could not be recovered; update skipped"
+      unlock=""
+      exit 0
+    }
+  else
+    log "another updater owns $unlock; update skipped"
+    unlock=""
+    exit 0
+  fi
 fi
+printf '%s\n' "$" >"$unlock/pid" 2>/dev/null || true
 
 CURRENT="$("$BIN" --version 2>/dev/null | sed -n 's/^horizon-launcher[[:space:]]\+//p' | head -n1)"
 [ -n "$CURRENT" ] || { log "could not read the embedded launcher version"; exit 0; }
@@ -76,7 +87,22 @@ case "$TAG" in
 esac
 
 [ -n "$LATEST" ] || { log "release metadata did not contain a launcher tag; keeping $CURRENT"; exit 0; }
-[ "$LATEST" != "$CURRENT" ] || exit 0
+
+# Mirror releases are semver today. Never replace a newer/dev build with an older public release.
+version_newer() {
+  awk -v candidate="$1" -v current="$2" 'BEGIN {
+    sub(/-.*/, "", candidate); sub(/-.*/, "", current);
+    nc=split(candidate, c, "."); no=split(current, o, ".");
+    n=(nc>no?nc:no);
+    for (i=1; i<=n; i++) {
+      cv=(i<=nc ? c[i]+0 : 0); ov=(i<=no ? o[i]+0 : 0);
+      if (cv>ov) exit 0;
+      if (cv<ov) exit 1;
+    }
+    exit 1;
+  }'
+}
+version_newer "$LATEST" "$CURRENT" || exit 0
 
 base="https://github.com/$REPO/releases/download/$TAG"
 dir="$(dirname "$SELF")"
@@ -135,9 +161,9 @@ chmod 755 "$SELF" 2>/dev/null || true
 log "installed $LATEST; rollback copy: $backup"
 
 # Keep the exact path (important for GearLever and .desktop integrations) and restart.
-trap - EXIT HUP INT TERM
+trap - 0 HUP INT TERM
 rm -rf "$cleanup" 2>/dev/null || true
-rmdir "$unlock" 2>/dev/null || true
+rm -rf "$unlock" 2>/dev/null || true
 cleanup=""
 unlock=""
 OXIDIUM_SKIP_UPDATE=1 HORIZON_LAUNCHER_NO_SELF_UPDATE=1 exec "$SELF" "$@"
