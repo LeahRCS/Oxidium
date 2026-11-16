@@ -41,11 +41,11 @@ printf '%s\\n' 'horizon-launcher {current}'
     write_executable(
         candidate,
         f"""#!/bin/sh
-if [ "\${{1:-}}" = "--appimage-extract-and-run" ] && [ "\${{2:-}}" = "--version" ]; then
+if [ "${{1:-}}" = "--appimage-extract-and-run" ] && [ "${{2:-}}" = "--version" ]; then
   printf '%s\\n' 'horizon-launcher {latest}'
   exit 0
 fi
-printf '%s\\n' launched > "\$OXIDIUM_TEST_MARKER"
+printf '%s\\n' launched > "$OXIDIUM_TEST_MARKER"
 """,
     )
 
