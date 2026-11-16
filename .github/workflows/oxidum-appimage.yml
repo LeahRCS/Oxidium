@@ -79,8 +79,6 @@ jobs:
           mkdir -p "$temp/packaging/icons/hicolor/256x256/apps"
           cp packaging/icons/hicolor/256x256/apps/oxidum.png "$temp/packaging/icons/hicolor/256x256/apps/oxidum.png"
           (cd "$temp" && python3 "$GITHUB_WORKSPACE/tools/fork/apply_overlay.py")
-          git -C "$temp" apply --check "$GITHUB_WORKSPACE/tools/fork/gpu-selection.patch"
-          git -C "$temp" apply "$GITHUB_WORKSPACE/tools/fork/gpu-selection.patch"
           python3 tools/fork/verify_overlay.py "$temp"
       - name: Check transformed locked upstream compiles
         working-directory: .
@@ -175,7 +173,7 @@ jobs:
         run: |
           cp tools/fork/apply_overlay.py "$RUNNER_TEMP/apply_overlay.py"
           cp tools/fork/verify_overlay.py "$RUNNER_TEMP/verify_overlay.py"
-          cp tools/fork/gpu-selection.patch "$RUNNER_TEMP/gpu-selection.patch"
+          cp tools/fork/gpu.rs "$RUNNER_TEMP/gpu.rs"
           cp packaging/linux/appimage.sh "$RUNNER_TEMP/oxidium-appimage.sh"
           cp packaging/linux/horizon-launcher.desktop "$RUNNER_TEMP/oxidium-launcher.desktop"
           cp packaging/linux/oxidium-appimage-updater.sh "$RUNNER_TEMP/oxidium-appimage-updater.sh"
@@ -199,8 +197,6 @@ jobs:
           mkdir -p packaging/icons/hicolor/256x256/apps
           cp "$RUNNER_TEMP/oxidum.png" packaging/icons/hicolor/256x256/apps/oxidum.png
           python3 "$RUNNER_TEMP/apply_overlay.py"
-          git apply --check "$RUNNER_TEMP/gpu-selection.patch"
-          git apply "$RUNNER_TEMP/gpu-selection.patch"
           python3 "$RUNNER_TEMP/verify_overlay.py" .
 
       - uses: dtolnay/rust-toolchain@stable
