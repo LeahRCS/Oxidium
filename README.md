@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="packaging/icons/hicolor/scalable/apps/Oxidum.svg" alt="Oxidium logo" width="128">
+  <img src="packaging/icons/hicolor/scalable/apps/Oxidum.svg" alt="Oxidum logo" width="128">
 </p>
 
 <h1 align="center">Oxidium</h1>
@@ -7,7 +7,7 @@
 <p align="center"><b>Rust-powered. Linux-focused. Portable by design.</b></p>
 
 <p align="center">
-  <a href="https://github.com/LeahRCS/Oxidium/actions/workflows/Oxidium-appimage.yml"><img src="https://github.com/LeahRCS/Oxidium/actions/workflows/Oxidium-appimage.yml/badge.svg?branch=main" alt="Oxidum AppImage"></a>
+  <a href="https://github.com/LeahRCS/Oxidium/actions/workflows/Oxidum-appimage.yml"><img src="https://github.com/LeahRCS/Oxidium/actions/workflows/Oxidum-appimage.yml/badge.svg?branch=main" alt="Oxidium AppImage"></a>
   <a href="https://github.com/LeahRCS/Oxidium/actions/workflows/ci.yml"><img src="https://github.com/LeahRCS/Oxidium/actions/workflows/ci.yml/badge.svg?branch=main" alt="Checks"></a>
   <img src="https://img.shields.io/badge/Minecraft-Java%2026.3-5D9C3F" alt="Minecraft Java 26.3">
   <img src="https://img.shields.io/badge/Rust-stable-B7410E?logo=rust&logoColor=white" alt="Rust">
