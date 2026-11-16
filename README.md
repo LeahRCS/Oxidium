@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="packaging/icons/hicolor/scalable/apps/Oxidum.svg" alt="Oxidum logo" width="128">
+  <img src="packaging/icons/hicolor/scalable/apps/oxidum.svg" alt="Oxidum logo" width="128">
 </p>
 
 <h1 align="center">Oxidium</h1>
@@ -7,7 +7,7 @@
 <p align="center"><b>Rust-powered. Linux-focused. Portable by design.</b></p>
 
 <p align="center">
-  <a href="https://github.com/LeahRCS/Oxidium/actions/workflows/Oxidum-appimage.yml"><img src="https://github.com/LeahRCS/Oxidium/actions/workflows/Oxidum-appimage.yml/badge.svg?branch=main" alt="Oxidium AppImage"></a>
+  <a href="https://github.com/LeahRCS/Oxidium/actions/workflows/oxidum-appimage.yml"><img src="https://github.com/LeahRCS/Oxidium/actions/workflows/oxidum-appimage.yml/badge.svg?branch=main" alt="Oxidium AppImage"></a>
   <a href="https://github.com/LeahRCS/Oxidium/actions/workflows/ci.yml"><img src="https://github.com/LeahRCS/Oxidium/actions/workflows/ci.yml/badge.svg?branch=main" alt="Checks"></a>
   <img src="https://img.shields.io/badge/Minecraft-Java%2026.3-5D9C3F" alt="Minecraft Java 26.3">
   <img src="https://img.shields.io/badge/Rust-stable-B7410E?logo=rust&logoColor=white" alt="Rust">
@@ -29,12 +29,16 @@ Oxidium brings the speed of Rust to the most beloved square game of all time, to
 
 Linux x86-64 builds are published as a self-updating AppImage in this repository's [Releases](https://github.com/LeahRCS/Oxidium/releases).
 
-The distributed asset is named `Oxidium-linux-x86_64.AppImage`. Once installed, Oxidium checks this repository's launcher releases and can replace its own AppImage from inside the launcher.
+**Current release asset:** `oxidum-linux-x86_64.AppImage` (legacy filename, pending the Oxidium naming migration). The release workflow still packages and publishes this name. The self-update channel targets this repository; replacing the running AppImage needs validation across installations, including GearLever integration.
+
+## Project maturity
+
+Oxidium currently builds on the Horizon-Free launcher and adds Linux integration and fork-specific packaging. The **Minecraft Java Edition instance runner and Prism-family import** described in [our development plan](docs/OXIDIUM_JAVA_PLAN.md) are **proposed work, not working features**. Horizon’s Rust-native client is separate from the Java Edition client: Java `.jar` mods do not run on the Rust client.
 
 ## Why Oxidium
 
-- **AppImage-first:** one portable Linux package, built automatically for every mirrored launcher release.
-- **Self-updating:** the launcher updates the AppImage it is currently running from.
+- **AppImage-first:** one portable Linux package, built by the fork’s release workflow.
+- **Self-update channel:** the launcher targets this repository’s releases; safe in-place replacement and desktop integration require end-to-end validation.
 - **Horizon-Free foundation:** keeps the fork's local/offline-oriented behavior and upstream compatibility work.
 - **Our own layer:** Oxidium branding, Linux integration, packaging, release automation and future project-specific features.
 - **Upstream-aware:** source synchronization is reviewed separately, while release mirroring can follow upstream launcher tags automatically.
@@ -49,7 +53,7 @@ Oxidium intentionally stays close to Horizon-Free so upstream fixes remain pract
 
 ## Upstream runtime and feature reference
 
-The sections below describe the Horizon-derived runtime and capabilities Oxidium is built on.
+The sections below summarize **upstream Horizon capabilities** inherited or referenced by the fork, **not a verified Oxidium release test report**. Availability depends on the upstream version and successful local preparation.
 
 <table>
   <tr>
@@ -113,9 +117,9 @@ Needs Rust 1.90+, Python 3.10+, JDK 25, and on Linux `libasound2-dev libudev-dev
 2. **Server jar:** the 26.3 server jar (`downloads.server.url` in `versions/26.3/26.3.json`), passed once with `--server-jar` or `HORIZON_SERVER_JAR`.
 
 ```sh
-git clone https://github.com/horizon-rust/horizon.git
-cd horizon
-cargo run --release -p horizon-prepare -- --prepare --server-jar ~/Downloads/server.jar   # needs JDK 25
+git clone https://github.com/LeahRCS/Oxidium.git
+cd Oxidium
+cargo run --release -p horizon-prepare -- --prepare --server-jar ~/Downloads/server.jar   # native-client preparation; needs JDK 25
 cargo run --release -p horizon-prepare -- sounds   # optional: sounds from your launcher install
 cargo run --release -p horizon-client
 ```
@@ -124,7 +128,7 @@ Prepared files land in the gitignored `.local/`: never commit or share them. Opt
 
 ## Roadmap
 
-What is in progress, what comes next and where to help: [ROADMAP.md](ROADMAP.md), or [playhorizon.dev/hub](https://playhorizon.dev/hub) with the work board and what shipped.
+**Oxidium-specific work:** [Java/Prism integration plan](docs/OXIDIUM_JAVA_PLAN.md), covering discovery, safe import, Java runtime selection, launching local Java instances, and mods and pack management. **Upstream Horizon work:** [ROADMAP.md](ROADMAP.md) and [playhorizon.dev/hub](https://playhorizon.dev/hub). The upstream roadmap is not an Oxidium delivery commitment.
 
 ## Contributing
 
@@ -172,6 +176,6 @@ Skins served over https show the default skin unless already cached; pack icons 
 
 [MIT](LICENSE), for the project's original work; dependencies keep their own licences ([notices](THIRD_PARTY_NOTICES.md)). Minecraft is a trademark of Mojang Synergies AB; its code and assets belong to Mojang and Microsoft under the [Minecraft EULA](https://www.minecraft.net/en-us/eula).
 
-## Author
+## Credits
 
-Made by [Ludovic Marie](https://lu4ovic.com) ([@ludovic111](https://github.com/ludovic111)).
+Oxidium is maintained under [LeahRCS](https://github.com/LeahRCS). Its upstream lineage is [Horizon-Free](https://github.com/0CYBER/horizon-free), based on [Horizon](https://github.com/horizon-rust/horizon), originally created by [Ludovic Marie](https://lu4ovic.com) ([@ludovic111](https://github.com/ludovic111)). Contributions remain credited to their respective authors.
