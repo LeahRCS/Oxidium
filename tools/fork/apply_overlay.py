@@ -105,9 +105,19 @@ else:
     # Newer launchers moved the shared mark helper from main.rs to widgets.rs.
     widgets = Path("launcher/src/widgets.rs")
     widgets_text = widgets.read_text() if widgets.is_file() else ""
-    if old_mark not in widgets_text:
+    widgets_old_mark = old_mark.replace(
+        "fn mark(size: f32, t: &Theme) -> Div {",
+        "pub(crate) fn mark(size: f32, t: &Theme) -> Div {",
+        1,
+    )
+    widgets_new_mark = new_mark.replace(
+        "fn mark(size: f32, _t: &Theme) -> Div {",
+        "pub(crate) fn mark(size: f32, _t: &Theme) -> Div {",
+        1,
+    )
+    if widgets_old_mark not in widgets_text:
         raise SystemExit("Oxidum overlay: launcher mark changed upstream")
-    widgets.write_text(widgets_text.replace(old_mark, new_mark))
+    widgets.write_text(widgets_text.replace(widgets_old_mark, widgets_new_mark))
 for old, new in [
     ('"HORIZON".chars().enumerate()', '"OXIDUM".chars().enumerate()'),
     ('"https://github.com/0CYBER/horizon-free".to_string()', '"https://github.com/LeahRCS/Oxidium".to_string()'),
