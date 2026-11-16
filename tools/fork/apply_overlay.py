@@ -283,6 +283,360 @@ for old, new in [
     text = text.replace(old, new)
 p.write_text(text)
 
+# GPU selection core is applied semantically: upstream moves launch plumbing often enough that
+# a line-number patch turns every launcher release into a manual merge. The standalone gpu.rs is
+# copied beside this script by the mirror workflow.
+gpu_template = Path(__file__).with_name("gpu.rs")
+gpu_target = Path("launcher/src/gpu.rs")
+if not gpu_target.is_file():
+    if not gpu_template.is_file():
+        raise SystemExit("Oxidum overlay: tools/fork/gpu.rs is missing")
+    gpu_target.write_text(gpu_template.read_text())
+
+p = Path("launcher/src/lib.rs")
+text = p.read_text()
+if "pub mod gpu;" not in text:
+    anchor = "pub mod github_mods;\n"
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: GPU module export anchor changed upstream")
+    text = text.replace(anchor, anchor + "pub mod gpu;\n", 1)
+p.write_text(text)
+
+p = Path("launcher/src/backend.rs")
+text = p.read_text()
+if "pub launcher_gpu: Option<String>" not in text:
+    anchor = """    /// What the window does while the game runs. Stays by default.
+    #[serde(default)]
+    pub while_playing: WhilePlaying,
+"""
+    addition = """    /// Linux: the physical GPU the launcher itself should use on its next GUI start, as
+    /// gpu::list reports it (a stable PCI id). None preserves exactly how Oxidium was started,
+    /// including an external prime-run wrapper.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub launcher_gpu: Option<String>,
+    /// Linux: the physical GPU Rust Minecraft instances use by default. Individual instances may
+    /// override it in their launch panel. None leaves adapter choice automatic/system-managed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rust_game_gpu: Option<String>,
+"""
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: Settings GPU fields anchor changed upstream")
+    text = text.replace(anchor, anchor + addition, 1)
+p.write_text(text)
+
+p = Path("launcher/src/launch.rs")
+text = p.read_text()
+if "pub gpu: Option<String>" not in text:
+    anchor = """    /// Linux: the dedicated graphics card of a computer with two (PRIME render offload).
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub dedicated_gpu: bool,
+"""
+    replacement = """    /// Linux: the dedicated graphics card of a computer with two (PRIME render offload).
+    /// Kept for settings written by older launchers; an explicit GPU below is more precise.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub dedicated_gpu: bool,
+    /// Linux: a physical GPU from gpu::list, stored by stable PCI id. None inherits the
+    /// environment exactly as the launcher started the game.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gpu: Option<String>,
+"""
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: Launch GPU field anchor changed upstream")
+    text = text.replace(anchor, replacement, 1)
+if "pub fn with_default_gpu" not in text:
+    anchor = """impl Launch {
+    pub fn is_empty(&self) -> bool {
+"""
+    helper = """impl Launch {
+    /// Resolves this instance's GPU against Settings' Rust-game default. An explicit named GPU
+    /// wins; the older dedicated-GPU switch stays an override for backward compatibility; only an
+    /// instance with neither inherits the default.
+    pub fn with_default_gpu(&self, default: Option<&str>) -> Launch {
+        let mut out = self.clone();
+        if out.gpu.is_some() {
+            out.dedicated_gpu = false;
+        } else if !out.dedicated_gpu {
+            out.gpu = default.map(str::to_owned);
+        }
+        out
+    }
+
+    pub fn is_empty(&self) -> bool {
+"""
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: Launch GPU default anchor changed upstream")
+    text = text.replace(anchor, helper, 1)
+if 'crate::i18n::trf("on {gpu}"' not in text:
+    anchor = """        if self.dedicated_gpu {
+            parts.push(crate::i18n::tr("on the dedicated GPU").to_string());
+        }
+"""
+    replacement = """        if let Some(gpu) = &self.gpu {
+            let name = crate::gpu::name(gpu);
+            parts.push(crate::i18n::trf("on {gpu}", &[("gpu", &name)]));
+        } else if self.dedicated_gpu {
+            parts.push(crate::i18n::tr("on the dedicated GPU").to_string());
+        }
+"""
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: Launch GPU summary anchor changed upstream")
+    text = text.replace(anchor, replacement, 1)
+p.write_text(text)
+
+# The CLI's Rust path resolves the per-instance/default GPU before jar preparation and wrapping.
+p = Path("launcher/src/cli.rs")
+text = p.read_text()
+if "with_default_gpu(settings.rust_game_gpu.as_deref())" not in text:
+    anchor = """            let vars = instance.vars(cmd.get_program());
+            cmd.envs(vars.iter().map(|(k, v)| (k, v)));
+            horizon_launcher::jars::prepare_launch(
+                &mut cmd,
+                &instance.launch,
+                horizon_launcher::jars::Permission::headless(allow_jar_downloads),
+            )
+            .map_err(|error| error.to_string())?;
+            let played = attached(horizon_launcher::launch::wrap(cmd, &instance.launch));
+"""
+    replacement = """            let vars = instance.vars(cmd.get_program());
+            cmd.envs(vars.iter().map(|(k, v)| (k, v)));
+            let settings = backend::Settings::load();
+            let launch = instance
+                .launch
+                .with_default_gpu(settings.rust_game_gpu.as_deref());
+            horizon_launcher::gpu::apply_to_command(&mut cmd, launch.gpu.as_deref(), true);
+            horizon_launcher::jars::prepare_launch(
+                &mut cmd,
+                &launch,
+                horizon_launcher::jars::Permission::headless(allow_jar_downloads),
+            )
+            .map_err(|error| error.to_string())?;
+            let played = attached(horizon_launcher::launch::wrap(cmd, &launch));
+"""
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: CLI Rust GPU anchor changed upstream")
+    text = text.replace(anchor, replacement, 1)
+p.write_text(text)
+
+# GUI Rust play moved from main.rs to developer_play.rs in launcher 0.2.30.
+p = Path("launcher/src/developer_play.rs")
+if p.is_file():
+    text = p.read_text()
+    if "with_default_gpu(self.settings.rust_game_gpu.as_deref())" not in text:
+        anchor = """            let launch = instance.map(|i| i.launch).unwrap_or_default();
+            self.starting_client = Some(tag);
+            jar_launch::client(cmd, launch, run, self.tx.clone());
+"""
+        replacement = """            let launch = instance
+                .map(|i| i.launch)
+                .unwrap_or_default()
+                .with_default_gpu(self.settings.rust_game_gpu.as_deref());
+            horizon_launcher::gpu::apply_to_command(&mut cmd, launch.gpu.as_deref(), true);
+            self.starting_client = Some(tag);
+            jar_launch::client(cmd, launch, run, self.tx.clone());
+"""
+        if anchor not in text:
+            raise SystemExit("Oxidum overlay: GUI Rust GPU anchor changed upstream")
+        text = text.replace(anchor, replacement, 1)
+    p.write_text(text)
+
+# The launcher window's GPU must be selected before GPUI creates its wgpu device.
+startup = Path("launcher/src/startup.rs")
+if startup.is_file():
+    text = startup.read_text()
+    if "apply_to_current_process(startup_settings.launcher_gpu.as_deref())" not in text:
+        anchor = """    horizon_launcher::proxy::announce(horizon_launcher::backend::Settings::load().proxy);
+"""
+        replacement = """    let startup_settings = horizon_launcher::backend::Settings::load();
+    horizon_launcher::proxy::announce(startup_settings.proxy.clone());
+"""
+        if anchor not in text:
+            raise SystemExit("Oxidum overlay: startup Settings anchor changed upstream")
+        text = text.replace(anchor, replacement, 1)
+        anchor = """    // The GPU's texture limit, which caps the pictures made from disk (`picture_cache`).
+    horizon_launcher::pictures::probe_gpu_limit();
+"""
+        replacement = """    // The launcher's GPU is chosen before GPUI/wgpu creates any graphics device. CLI launches are
+    // deliberately left alone, so this preference never leaks into a game started from the CLI.
+    #[cfg(target_os = "linux")]
+    horizon_launcher::gpu::apply_to_current_process(startup_settings.launcher_gpu.as_deref());
+    // The GPU's texture limit, which caps the pictures made from disk (`picture_cache`).
+    horizon_launcher::pictures::probe_gpu_limit();
+"""
+        if anchor not in text:
+            raise SystemExit("Oxidum overlay: startup GPU placement changed upstream")
+        text = text.replace(anchor, replacement, 1)
+    startup.write_text(text)
+
+# Rust renderer: exact physical GPU selection by PCI bus id, with friendly-name fallback.
+p = Path("crates/horizon-client-render/src/gfx.rs")
+text = p.read_text()
+if 'std::env::var("HORIZON_GPU")' not in text:
+    anchor = """/// A surface for `window` (none `offscreen`) and the adapter `open_backend`
+/// asks `instance` for. `Failed` is the surface's error, `NoAdapter` the
+/// request's.
+async fn surface_and_adapter(
+"""
+    helper = """fn adapter_matches_selection(
+    info: &wgpu::AdapterInfo,
+    pci: Option<&str>,
+    wanted_name: Option<&str>,
+) -> bool {
+    if let Some(wanted) = pci
+        && !info.device_pci_bus_id.is_empty()
+    {
+        return info.device_pci_bus_id.eq_ignore_ascii_case(wanted);
+    }
+    let info_name = info.name.to_ascii_lowercase();
+    wanted_name.is_some_and(|wanted| info_name.contains(wanted) || wanted.contains(&info_name))
+}
+
+async fn request_chosen_adapter(
+    instance: &wgpu::Instance,
+    surface: Option<&wgpu::Surface<'_>>,
+) -> std::result::Result<wgpu::Adapter, wgpu::RequestAdapterError> {
+    let pci = std::env::var("HORIZON_GPU")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.strip_prefix("pci:").unwrap_or(&s).to_ascii_lowercase());
+    let wanted_name = std::env::var("HORIZON_GPU_NAME")
+        .ok()
+        .filter(|s| !s.trim().is_empty())
+        .map(|s| s.to_ascii_lowercase());
+    if pci.is_some() || wanted_name.is_some() {
+        let adapters = instance.enumerate_adapters(wgpu::Backends::all()).await;
+        if let Some(adapter) = adapters.into_iter().find(|adapter| {
+            if surface.is_some_and(|surface| {
+                surface.get_capabilities(adapter).formats.is_empty()
+            }) {
+                return false;
+            }
+            adapter_matches_selection(&adapter.get_info(), pci.as_deref(), wanted_name.as_deref())
+        }) {
+            return Ok(adapter);
+        }
+        log::warn!(
+            "Horizon renderer: selected GPU {:?} ({:?}) is unavailable; using automatic selection",
+            pci,
+            wanted_name
+        );
+    }
+    instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::HighPerformance,
+            compatible_surface: surface,
+            force_fallback_adapter: false,
+            ..Default::default()
+        })
+        .await
+}
+
+/// A surface for `window` (none `offscreen`) and the adapter `open_backend`
+/// asks `instance` for. `Failed` is the surface's error, `NoAdapter` the
+/// request's.
+async fn surface_and_adapter(
+"""
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: renderer GPU helper anchor changed upstream")
+    text = text.replace(anchor, helper, 1)
+    anchor = """    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::HighPerformance,
+            compatible_surface: surface.as_ref(),
+            force_fallback_adapter: false,
+            ..Default::default()
+        })
+        .await
+        .map_err(|e| NoDevice::NoAdapter(e.to_string()))?;
+"""
+    replacement = """    let adapter = request_chosen_adapter(instance, surface.as_ref())
+        .await
+        .map_err(|e| NoDevice::NoAdapter(e.to_string()))?;
+"""
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: renderer adapter request changed upstream")
+    text = text.replace(anchor, replacement, 1)
+p.write_text(text)
+
+p = Path("launcher/src/launch/tests.rs")
+text = p.read_text()
+if "instance_gpu_override_precedes_legacy_and_settings_default" not in text:
+    anchor = """#[test]
+fn a_summary_says_what_runs() {
+"""
+    test = """#[test]
+fn instance_gpu_override_precedes_legacy_and_settings_default() {
+    let inherited = Launch::default().with_default_gpu(Some("pci:0000:01:00.0"));
+    assert_eq!(inherited.gpu.as_deref(), Some("pci:0000:01:00.0"));
+    assert!(!inherited.dedicated_gpu);
+
+    let legacy = Launch {
+        dedicated_gpu: true,
+        ..Launch::default()
+    }
+    .with_default_gpu(Some("pci:0000:02:00.0"));
+    assert_eq!(legacy.gpu, None);
+    assert!(legacy.dedicated_gpu);
+
+    let explicit = Launch {
+        dedicated_gpu: true,
+        gpu: Some("pci:0000:03:00.0".into()),
+        ..Launch::default()
+    }
+    .with_default_gpu(Some("pci:0000:04:00.0"));
+    assert_eq!(explicit.gpu.as_deref(), Some("pci:0000:03:00.0"));
+    assert!(!explicit.dedicated_gpu);
+}
+
+#[test]
+fn a_summary_says_what_runs() {
+"""
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: GPU launch test anchor changed upstream")
+    text = text.replace(anchor, test, 1)
+p.write_text(text)
+
+p = Path("crates/horizon-client-render/src/gfx.rs")
+text = p.read_text()
+if "explicit_gpu_selection_matches_pci_or_adapter_name" not in text:
+    anchor = """    #[test]
+    fn software_occlusion_culling_is_opt_in() {
+"""
+    test = """    #[test]
+    fn explicit_gpu_selection_matches_pci_or_adapter_name() {
+        let mut info = adapter(wgpu::DeviceType::DiscreteGpu);
+        info.name = "NVIDIA GeForce GTX 1660 Ti".into();
+        info.device_pci_bus_id = "0000:01:00.0".into();
+        assert!(super::adapter_matches_selection(
+            &info,
+            Some("0000:01:00.0"),
+            None,
+        ));
+        assert!(super::adapter_matches_selection(
+            &info,
+            None,
+            Some("geforce gtx 1660 ti"),
+        ));
+        assert!(!super::adapter_matches_selection(
+            &info,
+            Some("0000:02:00.0"),
+            Some("nvidia geforce gtx 1660 ti"),
+        ));
+        info.device_pci_bus_id.clear();
+        assert!(super::adapter_matches_selection(
+            &info,
+            Some("0000:02:00.0"),
+            Some("geforce gtx 1660 ti"),
+        ));
+    }
+
+    #[test]
+    fn software_occlusion_culling_is_opt_in() {
+"""
+    if anchor not in text:
+        raise SystemExit("Oxidum overlay: renderer GPU test anchor changed upstream")
+    text = text.replace(anchor, test, 1)
+p.write_text(text)
+
 # GPU selectors live in fast-moving launcher UI files. Apply them semantically instead of
 # carrying fragile line-based hunks in gpu-selection.patch.
 p = Path("launcher/src/glass_settings.rs")
