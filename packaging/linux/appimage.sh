@@ -18,12 +18,12 @@ here=$(cd "$(dirname "$0")" && pwd)
 binary=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 version=$2
 out=$(mkdir -p "$3" && cd "$3" && pwd)
-name=oxidum-linux-x86_64.AppImage
+name=oxidium-linux-x86_64.AppImage
 
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 appdir=$work/AppDir
-mkdir -p "$appdir/usr/bin" "$appdir/usr/lib" \
+mkdir -p "$appdir/usr/bin" "$appdir/usr/lib/oxidium" \
   "$appdir/usr/share/applications" "$appdir/usr/share/icons"
 
 # The program.
@@ -37,14 +37,22 @@ cp -R "$here/../icons/hicolor/." "$appdir/usr/share/icons/hicolor/"
 cp "$here/../icons/hicolor/scalable/apps/oxidum.svg" "$appdir/oxidum.svg"
 ln -s oxidum.svg "$appdir/.DirIcon"
 
-# Runs the packaged binary. It finds the packaged libraries through its own run path (set below),
-# not LD_LIBRARY_PATH, which every program it starts (the game, a browser, a file manager) would
-# inherit and load the launcher's libraries with.
+# Oxidium owns AppImage replacement. The embedded Horizon updater is disabled so two update
+# mechanisms never race on the same file. The bridge keeps the AppImage path stable (important for
+# GearLever) and updates only from converted, checksum-verified Oxidium releases.
+cp "$here/oxidium-appimage-updater.sh" "$appdir/usr/lib/oxidium/appimage-updater.sh"
+chmod 755 "$appdir/usr/lib/oxidium/appimage-updater.sh"
 cat > "$appdir/AppRun" <<'EOF'
 #!/bin/sh
-# AppRun: the launcher; its libraries are beside it (usr/lib, through its run path).
+set -u
 here=$(dirname "$(readlink -f "$0")")
-exec "$here/usr/bin/horizon-launcher" "$@"
+export HORIZON_LAUNCHER_NO_SELF_UPDATE=1
+bin="$here/usr/bin/horizon-launcher"
+updater="$here/usr/lib/oxidium/appimage-updater.sh"
+if [ -x "$updater" ]; then
+  OXIDIUM_LAUNCHER_BIN="$bin" "$updater" "$@" || true
+fi
+exec "$bin" "$@"
 EOF
 chmod 755 "$appdir/AppRun"
 
@@ -122,7 +130,7 @@ rm -f "$out/$name"
 ARCH=x86_64 "$tool" --appimage-extract-and-run --no-appstream "$appdir" "$out/$name"
 
 # It starts, and is the version it was built as, before any window or GPU is needed.
-got=$("$out/$name" --appimage-extract-and-run --version)
+got=$(OXIDIUM_SKIP_UPDATE=1 "$out/$name" --appimage-extract-and-run --version)
 [[ "$got" == "horizon-launcher $version" ]] || {
   echo "error: expected 'horizon-launcher $version', got '$got'" >&2
   exit 1
@@ -131,7 +139,7 @@ got=$("$out/$name" --appimage-extract-and-run --version)
 # The menu entry it installs starts the AppImage, not the copy inside its mount, which is gone
 # once the launcher exits. A data folder of its own: never a player's.
 data=$work/data
-HORIZON_LAUNCHER_HOME=$work/home XDG_DATA_HOME=$data \
+OXIDIUM_SKIP_UPDATE=1 HORIZON_LAUNCHER_HOME=$work/home XDG_DATA_HOME=$data \
   "$out/$name" --appimage-extract-and-run desktop-entry > /dev/null
 grep -Fq "Exec=\"$out/$name\"" "$data/applications/horizon-launcher.desktop" || {
   echo "error: the menu entry does not start $out/$name" >&2
