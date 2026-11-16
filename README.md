@@ -1,14 +1,14 @@
 <p align="center">
-  <img src="packaging/icons/hicolor/scalable/apps/oxidum.svg" alt="Oxidum logo" width="128">
+  <img src="packaging/icons/hicolor/scalable/apps/Oxidium.svg" alt="Oxidium logo" width="128">
 </p>
 
-<h1 align="center">Oxidum</h1>
+<h1 align="center">Oxidium</h1>
 
 <p align="center"><b>Rust-powered. Linux-focused. Portable by design.</b></p>
 
 <p align="center">
-  <a href="https://github.com/LeahRCS/Oxidum/actions/workflows/oxidum-appimage.yml"><img src="https://github.com/LeahRCS/Oxidum/actions/workflows/oxidum-appimage.yml/badge.svg?branch=main" alt="Oxidum AppImage"></a>
-  <a href="https://github.com/LeahRCS/Oxidum/actions/workflows/ci.yml"><img src="https://github.com/LeahRCS/Oxidum/actions/workflows/ci.yml/badge.svg?branch=main" alt="Checks"></a>
+  <a href="https://github.com/LeahRCS/Oxidium/actions/workflows/Oxidium-appimage.yml"><img src="https://github.com/LeahRCS/Oxidium/actions/workflows/Oxidium-appimage.yml/badge.svg?branch=main" alt="Oxidium AppImage"></a>
+  <a href="https://github.com/LeahRCS/Oxidium/actions/workflows/ci.yml"><img src="https://github.com/LeahRCS/Oxidium/actions/workflows/ci.yml/badge.svg?branch=main" alt="Checks"></a>
   <img src="https://img.shields.io/badge/Minecraft-Java%2026.3-5D9C3F" alt="Minecraft Java 26.3">
   <img src="https://img.shields.io/badge/Rust-stable-B7410E?logo=rust&logoColor=white" alt="Rust">
   <img src="https://img.shields.io/badge/vanilla%20parity-100%25-F0795A" alt="Vanilla parity 100%">
@@ -17,39 +17,39 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-3B2F7E" alt="MIT license"></a>
 </p>
 
-Oxidum brings the speed of Rust to the most beloved square game of all time, together with the portability of AppImage for Linux. Built on the amazing work of Horizon-Free, Oxidum extends the project with its own features, Linux-focused improvements, and a self-updating AppImage distribution designed to run seamlessly across modern Linux distributions.
+Oxidium brings the speed of Rust to the most beloved square game of all time, together with the portability of AppImage for Linux. Built on the amazing work of Horizon-Free, Oxidium extends the project with its own features, Linux-focused improvements, and a self-updating AppImage distribution designed to run seamlessly across modern Linux distributions.
 
 > [!IMPORTANT]
-> Oxidum is a community project derived from [Horizon-Free](https://github.com/0CYBER/horizon-free), which itself is based on [Horizon](https://github.com/horizon-rust/horizon). We preserve that lineage explicitly and are not affiliated with Mojang or Microsoft.
+> Oxidium is a community project derived from [Horizon-Free](https://github.com/0CYBER/horizon-free), which itself is based on [Horizon](https://github.com/horizon-rust/horizon). We preserve that lineage explicitly and are not affiliated with Mojang or Microsoft.
 
 > [!NOTE]
-> Oxidum does not ship Minecraft code, assets or game data. It uses the player's own Minecraft files. Local/offline profile support follows the Horizon-Free branch.
+> Oxidium does not ship Minecraft code, assets or game data. It uses the player's own Minecraft files. Local/offline profile support follows the Horizon-Free branch.
 
 ## Download
 
-Linux x86-64 builds are published as a self-updating AppImage in this repository's [Releases](https://github.com/LeahRCS/Oxidum/releases).
+Linux x86-64 builds are published as a self-updating AppImage in this repository's [Releases](https://github.com/LeahRCS/Oxidium/releases).
 
-The distributed asset is named `oxidum-linux-x86_64.AppImage`. Once installed, Oxidum checks this repository's launcher releases and can replace its own AppImage from inside the launcher.
+The distributed asset is named `Oxidium-linux-x86_64.AppImage`. Once installed, Oxidium checks this repository's launcher releases and can replace its own AppImage from inside the launcher.
 
-## Why Oxidum
+## Why Oxidium
 
 - **AppImage-first:** one portable Linux package, built automatically for every mirrored launcher release.
 - **Self-updating:** the launcher updates the AppImage it is currently running from.
 - **Horizon-Free foundation:** keeps the fork's local/offline-oriented behavior and upstream compatibility work.
-- **Our own layer:** Oxidum branding, Linux integration, packaging, release automation and future project-specific features.
+- **Our own layer:** Oxidium branding, Linux integration, packaging, release automation and future project-specific features.
 - **Upstream-aware:** source synchronization is reviewed separately, while release mirroring can follow upstream launcher tags automatically.
 
 ## Project lineage
 
-`Horizon → Horizon-Free → Oxidum`
+`Horizon → Horizon-Free → Oxidium`
 
-Oxidum intentionally stays close to Horizon-Free so upstream fixes remain practical to adopt. Project-specific changes live as a small reproducible overlay where possible.
+Oxidium intentionally stays close to Horizon-Free so upstream fixes remain practical to adopt. Project-specific changes live as a small reproducible overlay where possible.
 
 ---
 
 ## Upstream runtime and feature reference
 
-The sections below describe the Horizon-derived runtime and capabilities Oxidum is built on.
+The sections below describe the Horizon-derived runtime and capabilities Oxidium is built on.
 
 <table>
   <tr>
