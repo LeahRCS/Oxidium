@@ -180,6 +180,23 @@ text = text.replace(
     '"horizon-free",\n                "Horizon-Free",\n                "globe-02",\n                "https://github.com/0CYBER/horizon-free".to_string(),',
     '"oxidum",\n                "Oxidum",\n                "globe-02",\n                "https://github.com/LeahRCS/Oxidium".to_string(),',
 )
+# 0.2.30's compact rail uses the newer icon-button signature.
+text = text.replace(
+    '''button(
+                    "horizon-free".into(),
+                    "globe-02",
+                    "Horizon-Free".into(),
+                    false,
+                )
+                .on_click(move |_, _, cx| cx.open_url("https://github.com/0CYBER/horizon-free"))''',
+    '''button(
+                    "oxidum".into(),
+                    "globe-02",
+                    "Oxidum".into(),
+                    false,
+                )
+                .on_click(move |_, _, cx| cx.open_url("https://github.com/LeahRCS/Oxidium"))''',
+)
 p.write_text(text)
 
 p = Path("launcher/src/glass_settings.rs")
