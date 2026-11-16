@@ -51,6 +51,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libxkbcommon-x11-dev libwayland-dev libx11-xcb-dev libfontconfig-dev libvulkan-dev libasound2-dev patchelf
+      - name: Test Oxidium AppImage update bridge
+        working-directory: .
+        run: |
+          sh -n packaging/linux/oxidium-appimage-updater.sh
+          python3 packaging/linux/test_oxidium_appimage_updater.py
       - name: Validate Oxidum overlay against locked upstream
         working-directory: .
         run: |
