@@ -943,10 +943,6 @@ impl Audio {
             device_ticks: 0,
         }
     }
-    #[cfg(not(feature = "audio"))]
-    fn open_named(_: Arc<Mutex<Mixer>>, _: &str) -> Result<Stream> {
-        Err("this build has no sound output (built without the `audio` feature)".into())
-    }
     #[cfg(feature = "audio")]
     fn open_named(mixer: Arc<Mutex<Mixer>>, target: &str) -> Result<Stream> {
         if let Some(reason) = output_disabled(|name| std::env::var_os(name)) {
