@@ -78,7 +78,7 @@ def run(current: str, latest: str, *, bad_checksum: bool = False):
     before = self_image.read_bytes()
     candidate_bytes = candidate.read_bytes()
     completed = subprocess.run(
-        [str(UPDATER)],
+        ["sh", str(UPDATER)],
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
