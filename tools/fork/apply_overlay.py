@@ -189,13 +189,8 @@ text = text.replace(
                     false,
                 )
                 .on_click(move |_, _, cx| cx.open_url("https://github.com/0CYBER/horizon-free"))''',
-    '''button(
-                    "oxidum".into(),
-                    "globe-02",
-                    "Oxidum".into(),
-                    false,
-                )
-                .on_click(move |_, _, cx| cx.open_url("https://github.com/LeahRCS/Oxidium"))''',
+    '''button("oxidum".into(), "globe-02", "Oxidum".into(), false)
+                    .on_click(move |_, _, cx| cx.open_url("https://github.com/LeahRCS/Oxidium"))''',
 )
 p.write_text(text)
 
@@ -505,9 +500,7 @@ async fn request_chosen_adapter(
     if pci.is_some() || wanted_name.is_some() {
         let adapters = instance.enumerate_adapters(wgpu::Backends::all()).await;
         if let Some(adapter) = adapters.into_iter().find(|adapter| {
-            if surface.is_some_and(|surface| {
-                surface.get_capabilities(adapter).formats.is_empty()
-            }) {
+            if surface.is_some_and(|surface| surface.get_capabilities(adapter).formats.is_empty()) {
                 return false;
             }
             adapter_matches_selection(&adapter.get_info(), pci.as_deref(), wanted_name.as_deref())
