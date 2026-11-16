@@ -890,7 +890,7 @@ impl Audio {
         let (stream, live): (Option<Stream>, bool) = {
             if output {
                 log::warn!(
-                    "Horizon: no sound: this build has no sound output (built without the \`audio\` feature)"
+                    "Horizon: no sound: this build has no sound output (built without the `audio` feature)"
                 );
             }
             (None, false)
