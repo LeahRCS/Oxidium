@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=Oxidum
+Name=Oxidium
 GenericName=Game launcher
-Comment=Install, prepare and play Oxidum, Minecraft: Java Edition 26.3 rewritten in Rust
+Comment=Install, prepare and play Oxidium, Minecraft: Java Edition 26.3 rewritten in Rust
 Exec=horizon-launcher
 Icon=oxidum
 Terminal=false
